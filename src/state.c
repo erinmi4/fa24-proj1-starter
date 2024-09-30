@@ -22,65 +22,57 @@ static void update_tail(game_state_t *state, unsigned int snum);
 static void update_head(game_state_t *state, unsigned int snum);
 
 /* Task 1 */
-game_state_t *create_default_state() {
-    // 创建蛇
-    snake_t *NewSnake = (snake_t*) malloc(sizeof(snake_t));
-    if (NewSnake == NULL) {
-        printf("蛇的空间分配出错");
-        exit(1);
-    }
-    NewSnake->head_row = 2;
-    NewSnake->head_col = 4;
-    NewSnake->live = true;
-    NewSnake->tail_col = 2;
-    NewSnake->tail_row = 2;
+game_state_t* create_default_state() {
+    
+    game_state_t *default_state = malloc(sizeof(game_state_t));
+    
+    /* Set row number */
+    default_state->num_rows = 18;
 
-    // 创建游戏状态
-    game_state_t *NewState = (game_state_t*) malloc(sizeof(game_state_t));
-    if (NewState == NULL) {
-        printf("游戏状态的空间分配出错");
-        exit(1);
-    }
-    NewState->snakes = NewSnake;
-    NewState->num_rows = 18;
-    NewState->num_snakes = 1;
-
-    // 创建游戏板
-    NewState->board = (char **)malloc(NewState->num_rows * sizeof(char *));
-    if (NewState->board == NULL) {
-        printf("Memory allocation failed for board.\n");
-        exit(1);
+    /* Init the board */
+    default_state->board = malloc(sizeof(char *) * default_state->num_rows);
+    for (int i = 0; i < default_state->num_rows; i++) {
+        *(default_state->board + i) = malloc(sizeof(char) * 21); // an extra bit for '\0'
+        default_state->board[i][20] = '\0';
     }
 
-    for (int i = 0; i < NewState->num_rows; ++i) {
-        NewState->board[i] = (char *)malloc(20 * sizeof(char)); // 假设每行有20列
-        if (NewState->board[i] == NULL) {
-            printf("Memory allocation failed for board row.\n");
-            exit(1);
+    /* Set up game board */
+    for (int i = 0; i < 20; i++) {
+        default_state->board[0][i] = '#';
+        default_state->board[17][i] = '#';
+    }
+    
+    for (int i = 0; i < 20; i++) {
+        if (i == 0 || i == 19) {
+            default_state->board[1][i] = '#';
+            continue;
         }
+        default_state->board[1][i] = ' ';
     }
 
-    // 初始化游戏板内容
-    for (int i = 0; i < NewState->num_rows; ++i) {
-        for (int j = 0; j < 20; ++j) {
-            if (i == 0 || j == 0 || i == NewState->num_rows - 1 || j == 19) {
-                NewState->board[i][j] = '#'; // 墙壁
-            } else {
-                NewState->board[i][j] = ' '; // 空白
-            }
-        }
+    for (int i = 2; i < default_state->num_rows - 1; i++) {
+        strcpy(default_state->board[i], default_state->board[1]);
     }
 
-    // 放置果实
-    NewState->board[2][9] = '*'; // 在(2,9)放置果实
+    /* Hardcode snack and friut */
+    default_state->board[2][2] = 'd';
+    default_state->board[2][3] = '>';
+    default_state->board[2][4] = 'D';
 
-    // 放置蛇的头部和尾部,
-    NewState->board[NewSnake->tail_row][NewSnake->tail_col + 1 ] = '>'; // 蛇身的设置其实是硬编码
-    NewState->board[NewSnake->tail_row][NewSnake->tail_col] = 'd'; // 设置尾部
-    NewState->board[NewSnake->head_row][NewSnake->head_col] = 'D'; // 设置头部
+    default_state->board[2][9] = '*';
 
-    return NewState; // 返回创建的游戏状态
+    /* Set up snake */
+    default_state->num_snakes = 1;
+    default_state->snakes = malloc(sizeof(snake_t) * default_state->num_snakes);
+    default_state->snakes->tail_row = 2;
+    default_state->snakes->tail_col = 2;
+    default_state->snakes->head_row = 2;
+    default_state->snakes->head_col = 4;
+    default_state->snakes->live = 1;
+
+    return default_state;
 }
+
 
 
 /*整个state由board，snake组成
@@ -278,20 +270,15 @@ static unsigned int get_next_col(unsigned int cur_col, char c) {
   This function should not modify anything.
 */
 static char next_square(game_state_t *state, unsigned int snum) {
-  // TODO: Implement this function.
-  char next;
-    switch (snum) {
-        case 0: //也就是尾巴为s的蛇，会向下移动
-            next = get_board_at(state, get_next_row(state->snakes->head_row,'s'), get_next_col(state->snakes->head_col,'s'));
-        case 1://尾巴为d的蛇，向右边的蛇
-            next = get_board_at(state, get_next_row(state->snakes->head_row,'d'), get_next_col(state->snakes->head_col,'d'));
-        case 2://尾巴为a的蛇，向左边移动
-            next = get_board_at(state, get_next_row(state->snakes->head_row,'a'), get_next_col(state->snakes->head_col,'a'));
-        case 3://尾巴为w的蛇，向上移动
-            next =get_board_at(state, get_next_row(state->snakes->head_row,'w'), get_next_col(state->snakes->head_col,'w'));
-    }
-        return next;
-}
+    unsigned int head_row = state->snakes[snum].head_row;
+    unsigned int head_col = state->snakes[snum].head_col;
+    char head_state = get_board_at(state, head_row, head_col);
+
+    unsigned int next_row = get_next_row(head_row, head_state);
+    unsigned int next_col = get_next_col(head_col, head_state);
+
+    return get_board_at(state, next_row, next_col);
+  }
 
 /*
   Task 4.3
