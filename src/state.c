@@ -323,10 +323,18 @@ static void update_head(game_state_t *state, unsigned int snum) {
 */
 static void update_tail(game_state_t *state, unsigned int snum) {
   // TODO: Implement this function.
-  unsigned int head_row = state->snakes[snum].head_row;
-  unsigned int head_col = state->snakes[snum].head_col;
-  char head_state = get_board_at(state,head_row,head_col);
-  
+  unsigned int tail_row= state->snakes[snum].tail_row;
+  unsigned int tail_col= state->snakes[snum].tail_col;
+  char tail_state= get_board_at(state,tail_row,tail_col);
+  unsigned int next_row = get_next_row(tail_row, tail_state);
+  unsigned int next_col = get_next_col(tail_col, tail_state);
+//当前位置变为空白
+  set_board_at(state,tail_row,tail_col,' ');
+//身体变为尾巴，修改当前尾巴位置
+  char next_state = get_board_at(state,next_row,next_col);
+  state->snakes[snum].tail_col = next_col;
+  state->snakes[snum].tail_row = next_row;
+  set_board_at(state,next_row,next_col,body_to_tail(next_state));
 }
 
 /* Task 4.5 */
