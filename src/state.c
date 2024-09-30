@@ -1,5 +1,5 @@
 #include "state.h"
-
+#include "unit_tests.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -268,6 +268,7 @@ static unsigned int get_next_col(unsigned int cur_col, char c) {
   Helper function for update_state. Return the character in the cell the snake is moving into.
 
   This function should not modify anything.
+  获得该条蛇下一步的位置上的东西
 */
 static char next_square(game_state_t *state, unsigned int snum) {
     unsigned int head_row = state->snakes[snum].head_row;
@@ -340,6 +341,32 @@ static void update_tail(game_state_t *state, unsigned int snum) {
 /* Task 4.5 */
 void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
   // TODO: Implement this function.
+  // 更新蛇头和蛇尾
+  char next;
+  unsigned int  cur_col = state->snakes->head_col;
+  unsigned int cur_row = state->snakes->head_row;
+  for (int i = 0; i < 3; i++)
+  {
+    update_head(state,i);
+    update_tail(state,i);
+    next = next_square(state,i);
+  }
+  if (next == '#' || is_snake(next))
+  {
+    //蛇会死亡
+    state->snakes->live = false;
+    //蛇头变为x
+    set_board_at(state,cur_row,cur_col,'x');
+  }
+  else if (next == '*')
+  {
+    //将水果部分修改为头部
+      for (int i = 0; i < 3; i++){
+      update_head(state,i);
+    }
+    //产生一个新的水果
+    add_food(state);
+  }
   return;
 }
 
@@ -373,3 +400,4 @@ game_state_t *initialize_snakes(game_state_t *state) {
   // TODO: Implement this function.
   return NULL;
 }
+
