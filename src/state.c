@@ -293,7 +293,22 @@ static char next_square(game_state_t *state, unsigned int snum) {
 */
 static void update_head(game_state_t *state, unsigned int snum) {
   // TODO: Implement this function.
-  return;
+  /*注意两件事情
+  1. 将下一个位置变为头部
+  2. 将头部当前位置变为身体
+   */
+    unsigned int head_row = state->snakes[snum].head_row;
+    unsigned int head_col = state->snakes[snum].head_col;
+    char head_state = get_board_at(state, head_row, head_col);
+
+    unsigned int next_row = get_next_row(head_row, head_state);
+    unsigned int next_col = get_next_col(head_col, head_state);
+// 将头部当前位置变为身体
+    set_board_at(state,head_row,head_col,head_to_body(head_state));
+//将下一个位置变为头部
+    state->snakes->head_row = next_row;
+    state->snakes->head_col = next_col;
+    set_board_at(state,next_row,next_col,head_state);
 }
 
 /*
@@ -308,7 +323,10 @@ static void update_head(game_state_t *state, unsigned int snum) {
 */
 static void update_tail(game_state_t *state, unsigned int snum) {
   // TODO: Implement this function.
-  return;
+  unsigned int head_row = state->snakes[snum].head_row;
+  unsigned int head_col = state->snakes[snum].head_col;
+  char head_state = get_board_at(state,head_row,head_col);
+  
 }
 
 /* Task 4.5 */
