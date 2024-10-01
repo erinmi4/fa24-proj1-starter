@@ -339,36 +339,31 @@ static void update_tail(game_state_t *state, unsigned int snum) {
 }
 
 /* Task 4.5 */
-void update_state(game_state_t *state, int (*add_food)(game_state_t *state)) {
-  // TODO: Implement this function.
-  // 更新蛇头和蛇尾
-  char next;
-  unsigned int  cur_col = state->snakes->head_col;
-  unsigned int cur_row = state->snakes->head_row;
-  for (int i = 0; i < 3; i++)
-  {
-    update_head(state,i);
-    update_tail(state,i);
-    next = next_square(state,i);
-  }
-  if (next == '#' || is_snake(next))
-  {
-    //蛇会死亡
-    state->snakes->live = false;
-    //蛇头变为x
-    set_board_at(state,cur_row,cur_col,'x');
-  }
-  else if (next == '*')
-  {
-    //将水果部分修改为头部
-      for (int i = 0; i < 3; i++){
-      update_head(state,i);
+void update_state(game_state_t* state, int (*add_food)(game_state_t* state)) {
+    for (unsigned int i = 0; i < state->num_snakes; i++) {
+        /* If the snake died, stay still */
+        if (state->snakes[i].live == false) {
+            continue;
+        }
+        unsigned int head_row = state->snakes[i].head_row;
+        unsigned int head_col = state->snakes[i].head_col;
+
+        /* Check if the snake kills itself in the next step */
+        char ns = next_square(state, i);
+        if (ns == '#' || is_snake(ns)) {
+            state->snakes[i].live = false;
+            set_board_at(state, head_row, head_col, 'x');
+        } else if (ns == '*') {   /* Check if the snake eats the fruit */
+            update_head(state, i);
+            add_food(state);
+        } else {    /* Nothing happened, the snake goes on */
+            update_head(state, i);
+            update_tail(state, i);
+        }
     }
-    //产生一个新的水果
-    add_food(state);
-  }
-  return;
+    return;
 }
+
 
 /* Task 5.1 */
 char *read_line(FILE *fp) {
